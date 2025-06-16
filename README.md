@@ -116,7 +116,7 @@ The board has three special test features:
 - A button and a LED (D2) on the button echo signal, to see that the button echo feature is working.
 - A switch to emulate the CPU request signal.
 
-<img src="images/figure7.png" width="500">  
+<img src="images/figure7.jpg" width="500">  
 
 I began by writing the code for the ATtiny13 and tested all the features to ensure they worked as intended. The button echo function performed so quickly that any slight delay, caused by reading the button state and then echoing it, was imperceptible.
 
