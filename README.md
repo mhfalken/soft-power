@@ -14,7 +14,10 @@ In this guide, I will describe the custom solution I developed. It effectively a
 
 ## Features
 
-Before we dive into the solution, let's outline the required features. For clarity, everything that needs to be powered on and off—such as the system CPU, charger, etc.—is referred to as the _system_. The component that controls power on and off is called the _power solution_ (see **Figure 1**). The _power solution_ must provide the following features:
+Before we dive into the solution, let's outline the required features. For clarity, everything that needs to be powered on and off—such as the system CPU, charger, etc.—is referred to as the _system_. The component that controls power on and off is called the _power solution_.  
+<img src="images/figure1.png" width="500">  
+
+The _power solution_ must provide the following features:  
 
 **Push Button Control**: A push button that can be pressed for a few seconds to turn the power to the system on and off. Power off is also used in case the _system_ CPU is stuck and needs a reset.
 
@@ -30,17 +33,20 @@ Before we dive into the solution, let's outline the required features. For clari
 
 ## Design
 
-The _power solution_ utilizes a tiny CPU, a pFET, a resistor, and a push button, as depicted in **Figure 2**. The power "switch" that transitions battery power to the system is a pFET, which is managed by the _power_ CPU. It is important to select a pFET capable of handling the _system’s_ power requirements. In this example, the SI2305, a SOT23-3 device capable of handling up to 4A, has been chosen, making it suitable for most battery-powered systems.
+The _power solution_ utilizes a tiny CPU, a pFET, a resistor, and a push button. The power "switch" that transitions battery power to the system is a pFET, which is managed by the _power_ CPU. It is important to select a pFET capable of handling the _system’s_ power requirements. In this example, the SI2305, a SOT23-3 device capable of handling up to 4A, has been chosen, making it suitable for most battery-powered systems.  
+<img src="images/figure2.png" width="500">  
 
 The push button connects directly to the _power_ CPU, using an internal pull-up resistor. However, the _system_ must also be able to monitor the button's state, which introduces a challenge because the button then must span two different power domains. The _power_ CPU operates in the battery power domain, with logic levels up to 4.2V, while the _system's_ power domain typically operates at 3.3V or lower. Directly connecting the button to a _system_ CPU I/O pin would force the pin to 4.2V, potentially damaging it.
 
-To address this, the button state is echoed on another pin of the _power_ CPU. When the button is pressed, the _power_ CPU outputs LOW; when the button is released, the pin is tri-stated. The _system_ CPU must use an internal pull-up resistor on its input pin, thereby controlling the HIGH logic level. This approach ensures the _power_ _solution_ adapts to the _system_ CPU’s power domain. Refer to **Figure 3** for a detailed diagram.
+To address this, the button state is echoed on another pin of the _power_ CPU. When the button is pressed, the _power_ CPU outputs LOW; when the button is released, the pin is tri-stated. The _system_ CPU must use an internal pull-up resistor on its input pin, thereby controlling the HIGH logic level. This approach ensures the _power_ _solution_ adapts to the _system_ CPU’s power domain.  
+<img src="images/figure3.png" width="500">  
 
 Additionally, the _system_ CPU can manage power on and off using the CPU request pin. This pin requires an external pull-down resistor to ensure a defined logic LOW level when the _system_ CPU is powered down.
 
 ## State machine
 
-The core functionality of the _power_ CPU firmware is implemented using a state machine, as illustrated in **Figure 4**.
+The core functionality of the _power_ CPU firmware is implemented using a state machine.  
+<img src="images/figure4.png" width="500">  
 
 When the _power_ CPU exits reset, it begins in STATE_OFF. If no activity occurs, the CPU transitions to \`STATE_ON_OFF\` after a 10-second timeout and then to \`STATE_SLEEP\` mode after an additional 3 seconds.
 
@@ -58,9 +64,9 @@ This state machine design ensures efficient power management and reliable commun
 
 This solution is designed with an ATtiny device with the smallest footprint. There exist four nearly identical models: ATtiny4, ATtiny5, ATtiny9, and ATtiny10. All these devices feature 4 I/O pins, 32 bytes of RAM, and differ only in FLASH memory capacity—ATtiny4/5 have 512 bytes, while ATtiny9/10 offer 1024 bytes. They are available in two package options, including the SOT23-6 (3x3mm), which can be hand-soldered. These devices operate within a voltage range of 1.8V to 5.5V, meeting the project’s requirements. For low-quantity purchases, all models are priced similarly so for development, I’ve chosen the ATtiny10 due to its larger FLASH size, though the code is compatible across all four devices.
 
-The code is written in bare-metal C, with no room for unnecessary overhead. This approach requires manually programming all aspects, including CPU initialization, timer configuration, and more. The initialization code can be seen in **Figure 5**. Instead of providing a detailed walkthrough of the code, I’ll highlight key challenges addressed during development.
+The code is written in bare-metal C, with no room for unnecessary overhead. This approach requires manually programming all aspects, including CPU initialization, timer configuration, and more. Instead of providing a detailed walkthrough of the code, I’ll highlight key challenges addressed during development.
 
-During initialization, all I/O pins are configured, and the state machine is implemented in function PollState() \[Editor: “PollState()” is code\].
+During initialization, all I/O pins are configured, and the state machine is implemented in function `PollState()`.
 
 A hardware timer (Timer 0) is configured as a counter running at 16 counts per millisecond. A custom delay function uses this counter to measure delays in milliseconds, supporting the state machine’s timing requirements.
 
@@ -98,7 +104,7 @@ The ATtiny10, described earlier, is unsuitable for this purpose because its butt
 
 When the test is complete it is however useful that the final implementation also can be tested on the ATtiny10 and specifically test the special fuse programming is working. For that purpose, I build an evaluation board, that support ATtiny4/5/9/10 and ATtiny13 devices and has hardware to test all features. It also has pads to connect a full _system_ to it, for a more realistic test.
 
-The board schematic can be seen in **Figure 6**.
+<img src="images/figure6.png" width="500">  
 
 It has support for the _power_ CPU with two different footprints and two different edge connectors for programming the CPUs. It is only possible to mount one of the CPUs on each board, which can then be programmed using the associated edge connector.
 
@@ -110,7 +116,7 @@ The board has three special test features:
 - A button and a LED (D2) on the button echo signal, to see that the button echo feature is working.
 - A switch to emulate the CPU request signal.
 
-A picture of the evaluation board can be seen in **Figure 7**. The plot files for PCB production can be found under additional material.
+<img src="images/figure7.png" width="500">  
 
 I began by writing the code for the ATtiny13 and tested all the features to ensure they worked as intended. The button echo function performed so quickly that any slight delay, caused by reading the button state and then echoing it, was imperceptible.
 
@@ -128,6 +134,7 @@ In my designs, I typically integrate voltage monitoring into the _system_ CPU, a
 
 ## Conclusion
 
-I have described two implementations of the _power_ _solution_, both of which consume so little power that their usage is negligible compared to the battery's self-discharge rate. Both solutions share the same feature set, are compact, and cost around $1-$2. For completeness I have shown the _power solution_ for the ATtiny4/5/9/10 with the ISP connector in **Figure 8**, which is needed to program the device.
+I have described two implementations of the _power_ _solution_, both of which consume so little power that their usage is negligible compared to the battery's self-discharge rate. Both solutions share the same feature set, are compact, and cost around $1-$2. For completeness I have shown the _power solution_ for the ATtiny4/5/9/10 with the ISP connector, which is needed to program the device.  
+<img src="images/figure8.png" width="500">  
 
 So far, I have tested the _power solution_ on my evaluation board. I have also integrated it into the next version of my laser tag guns, which will undergo testing soon. This integration enhances user-friendliness by eliminating the risk of forgetting to turn the devices off. Additionally, charging is simplified—users only need to plug in a USB power cable and don’t need the unlogic step of turning on the power switch.
