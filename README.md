@@ -138,3 +138,5 @@ I have described two implementations of the _power_ _solution_, both of which co
 <img src="images/figure8.png" width="500">  
 
 So far, I have tested the _power solution_ on my evaluation board. I have also integrated it into the next version of my laser tag guns, which will undergo testing soon. This integration enhances user-friendliness by eliminating the risk of forgetting to turn the devices off. Additionally, charging is simplified—users only need to plug in a USB power cable and don’t need the unlogic step of turning on the power switch.
+
+I have also published this article in the Circuit Celler, Issue 417
